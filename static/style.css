@@ -507,3 +507,13 @@ form .btn { margin-top: 24px; width: 100%; }
     .cream-section, .quote-band, .center-section { padding: 40px 22px; }
     .site-footer { padding: 36px 24px 20px; }
 }
+/* ===== Eyebrow text above page titles ===== */
+.script {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--moss-bright);
+    margin-bottom: 10px;
+}
+
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }

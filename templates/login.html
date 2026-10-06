@@ -15,11 +15,11 @@
     </form>
 
     {% if message %}
-    <p style="color:#C0392B; font-weight:600; margin-top:1rem;">{{ message }}</p>
+    <p class="msg msg-err">{{ message }}</p>
     {% endif %}
 
-    <p style="margin-top:1rem;">
-        New here? <a href="/signup" style="color:#7A9249;">Create an account</a>
+    <p class="form-alt">
+        New here? <a href="/signup">Create an account</a>
     </p>
 </section>
 {% endblock %}

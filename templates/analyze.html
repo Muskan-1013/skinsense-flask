@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Enter a DermaSense reading</p>
+        <h1>Skin Analyser.</h1>
+    </div>
+</section>
+
+<section class="form-section">
+    <form method="POST">
+        <label for="moisture">Moisture (%)</label>
+        <input id="moisture" type="number" name="moisture" min="0" max="100" step="any" value="{{ values.get('moisture', '') }}" required>
+
+        <label for="ph">pH</label>
+        <input id="ph" type="number" name="ph" min="0" max="14" step="any" value="{{ values.get('ph', '') }}" required>
+
+        <label for="oiliness">Oiliness (%)</label>
+        <input id="oiliness" type="number" name="oiliness" min="0" max="100" step="any" value="{{ values.get('oiliness', '') }}" required>
+
+        <button class="btn" type="submit">Analyse</button>
+    </form>
+
+    {% if error %}
+    <p class="msg msg-err">{{ error }}</p>
+    {% endif %}
+</section>
+
+{% if profile %}
+<section class="block">
+    <div class="section-head">
+        <h2>{{ profile.skin_type }} skin</h2>
+        <p>Based on the readings you entered.</p>
+    </div>
+    <div class="card-grid">
+        <article class="card"><h3>Moisture</h3><p>{{ profile.moisture_level }}</p></article>
+        <article class="card"><h3>pH</h3><p>{{ profile.ph_status }}</p></article>
+        <article class="card"><h3>Oiliness</h3><p>{{ profile.oil_level }}</p></article>
+        <article class="card"><h3>Ingredients to look for</h3><p>{{ profile.ingredients | join(", ") }}</p></article>
+    </div>
+    <div class="wrap narrow" style="margin-top:28px;">
+        {% for note in profile.notes %}<p>{{ note }}</p>{% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

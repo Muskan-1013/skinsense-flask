@@ -22,7 +22,7 @@
     </form>
 
     {% if message %}
-    <p style="color:#7A9249; font-weight:600; margin-top:1rem;">{{ message }}</p>
+    <p class="msg {{ 'msg-ok' if status == 'ok' else 'msg-err' }}">{{ message }}</p>
     {% endif %}
 </section>
 {% endblock %}

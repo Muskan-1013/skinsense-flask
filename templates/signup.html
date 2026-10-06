@@ -10,17 +10,17 @@
         <input id="email" type="email" name="email" required>
 
         <label for="password">Password</label>
-        <input id="password" type="password" name="password" required minlength="6">
+        <input id="password" type="password" name="password" required minlength="{{ min_length }}">
 
         <button class="btn" type="submit">Create Account</button>
     </form>
 
     {% if message %}
-    <p style="color:#7A9249; font-weight:600; margin-top:1rem;">{{ message }}</p>
+    <p class="msg msg-err">{{ message }}</p>
     {% endif %}
 
-    <p style="margin-top:1rem;">
-        Already have an account? <a href="/login" style="color:#7A9249;">Log in</a>
+    <p class="form-alt">
+        Already have an account? <a href="/login">Log in</a>
     </p>
 </section>
 {% endblock %}
