@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, session
 import os
 
 app = Flask(__name__)
-app.secret_key = "skinsense_secret_key_2026"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-key")
 
 
 # ============ DATA (LISTS AND DICTIONARIES) ============
