@@ -42,6 +42,8 @@
         {% block content %}{% endblock %}
     </main>
 
+        {% set show_brand = request.path == '/' %}
+    {% if session.get('user') or show_brand %}
     <footer class="site-footer">
         <div class="footer-top">
             {% if session.get('user') %}
@@ -73,13 +75,16 @@
                 </ul>
             </div>
             {% endif %}
+            {% if show_brand %}
             <div class="footer-brand-card">
                 <img src="/static/logo.png" alt="SkinSense">
                 <p>Measurement-first skincare education from the SkinSense team.</p>
                 <p class="footer-fine">&copy; 2026 SkinSense</p>
             </div>
+            {% endif %}
         </div>
     </footer>
+    {% endif %}
 
 </div>
 
