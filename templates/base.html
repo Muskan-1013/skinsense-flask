@@ -42,7 +42,7 @@
         {% block content %}{% endblock %}
     </main>
 
-        {% set show_brand = request.path == '/' %}
+    {% set show_brand = request.path == '/' %}
     {% if session.get('user') or show_brand %}
     <footer class="site-footer">
         <div class="footer-top">
