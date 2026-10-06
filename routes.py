@@ -1,7 +1,8 @@
 """All page routes, grouped in one blueprint."""
+
 from zoneinfo import ZoneInfo
-from flask import jsonify
-from flask import Blueprint, redirect, render_template, request, session
+
+from flask import Blueprint, jsonify, redirect, render_template, request, session
 
 import content
 import database
@@ -16,10 +17,22 @@ from models import Reading
 bp = Blueprint("main", __name__)
 
 # Pages a visitor can open without an account. Everything else needs login.
+# The /api/ endpoints use a device token instead of a login session.
 PUBLIC_ENDPOINTS = {
     "main.welcome", "main.login", "main.signup", "static",
     "main.api_register", "main.api_poll", "main.api_readings",
 }
+
+IST = ZoneInfo("Asia/Kolkata")
+
+
+def current_user():
+    """The logged-in user's row, or None (and clear the session) if they no longer exist."""
+    user = database.get_user_by_email(session["user"])
+    if user is None:
+        session.pop("user", None)
+    return user
+
 
 @bp.before_app_request
 def require_login():
@@ -181,10 +194,9 @@ def logout():
     session.pop("user", None)
     session["splash_seen"] = True  # skip the splash after logging out
     return redirect("/login")
+
+
 # ---------- device pairing and readings ----------
-
-IST = ZoneInfo("Asia/Kolkata")
-
 
 @bp.route("/pair", methods=["GET", "POST"])
 @login_required
@@ -192,10 +204,12 @@ def pair():
     message, status = "", "ok"
     if request.method == "POST":
         code = request.form.get("code", "").strip()
-        user = database.get_user_by_email(session["user"])
+        user = current_user()
+        if user is None:
+            return redirect("/login")
         if not (code.isdigit() and len(code) == 6):
             message, status = "Enter the 6-digit code shown on your device.", "err"
-        elif user and database.claim_pairing(code, user["id"]):
+        elif database.claim_pairing(code, user["id"]):
             message = "Device paired. Your readings will appear under My Skin."
         else:
             message, status = "That code is invalid or has expired. Check the device screen.", "err"
@@ -205,7 +219,9 @@ def pair():
 @bp.route("/my-skin")
 @login_required
 def my_skin():
-    user = database.get_user_by_email(session["user"])
+    user = current_user()
+    if user is None:
+        return redirect("/login")
     rows = database.get_readings(user["id"])
     readings = [
         {
