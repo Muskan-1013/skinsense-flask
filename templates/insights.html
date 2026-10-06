@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Read your skin more clearly</p>
+        <h1>Skin Insights.</h1>
+    </div>
+</section>
+
+<section>
+    <div class="wrap">
+        <h2>Skin Type Classification</h2>
+        <table>
+            <tr><th>Skin Type</th><th>Condition</th></tr>
+            {% for s in skin_types %}
+            <tr><td>{{ s.type }}</td><td>{{ s.condition }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</section>
+
+<section class="cream-section">
+    <div class="wrap">
+        <h2>Ingredient Suggestions</h2>
+        <div class="card-grid">
+            {% for i in ingredients %}
+            <article class="card">
+                <h3>For {{ i.type }} skin</h3>
+                <p>{{ i.list }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

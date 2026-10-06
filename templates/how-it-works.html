@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Simple, practical, transparent</p>
+        <h1>How It Works.</h1>
+    </div>
+</section>
+
+<section>
+    <div class="wrap">
+        <h2>What Each Reading Means</h2>
+        <div class="card-grid">
+            {% for r in readings %}
+            <article class="card">
+                <h3>{{ r.name }}</h3>
+                <p>{{ r.meaning }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Transparent by design</p>
+        <h1>Science &amp; Accuracy.</h1>
+    </div>
+</section>
+
+<section>
+    <div class="wrap">
+        <h2>Calibration Process</h2>
+        <div class="card-grid">
+            {% for c in calibrations %}
+            <article class="card">
+                <h3>{{ c.name }}</h3>
+                <p>{{ c.detail }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

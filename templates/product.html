@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="product-hero">
+    <div class="product-hero-device">
+        <div class="circle-photo">
+            <img src="/static/device.png" alt="DermaSense device">
+        </div>
+    </div>
+
+    <div class="product-hero-copy">
+        <h1>Meet DermaSense</h1>
+        <p>A handheld IoT device that measures three skin parameters.</p>
+
+        <div class="reading-stack">
+            {% for r in readings %}
+            <div class="reading-card">
+                <h3>{{ r.name }}</h3>
+                <p>{{ r.meaning }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="block">
+    <div class="section-head">
+        <h2>Technical Specs</h2>
+    </div>
+    <table>
+        <tr><th>Component</th><th>Specification</th></tr>
+        {% for s in specs %}
+        <tr><td>{{ s[0] }}</td><td>{{ s[1] }}</td></tr>
+        {% endfor %}
+    </table>
+</section>
+
+<section class="block">
+    <div class="section-head">
+        <h2>How It Compares</h2>
+    </div>
+    <table>
+        <tr><th>Device</th><th>Parameters</th><th>Price (Rs.)</th></tr>
+        {% for c in comparison %}
+        <tr><td>{{ c[0] }}</td><td>{{ c[1] }}</td><td>{{ c[2] }}</td></tr>
+        {% endfor %}
+    </table>
+</section>
+
+<section class="center-section">
+    <h2>Be part of the first release.</h2>
+    <a class="btn" href="/waitlist">Order Now</a>
+</section>
+
+{% endblock %}

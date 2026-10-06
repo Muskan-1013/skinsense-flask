@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="form-section">
+    <p class="script">Welcome back</p>
+    <h1>Log in to SkinSense.</h1>
+
+    <form method="POST">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" required>
+
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" required>
+
+        <button class="btn" type="submit">Log In</button>
+    </form>
+
+    {% if message %}
+    <p style="color:#C0392B; font-weight:600; margin-top:1rem;">{{ message }}</p>
+    {% endif %}
+
+    <p style="margin-top:1rem;">
+        New here? <a href="/signup" style="color:#7A9249;">Create an account</a>
+    </p>
+</section>
+{% endblock %}

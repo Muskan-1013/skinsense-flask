@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Join the Waitlist</p>
+        <h1>Be the First to Try DermaSense.</h1>
+    </div>
+</section>
+
+<section class="form-section">
+    <form method="POST">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" required>
+
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" required>
+
+        <label for="skintype">Skin Type (optional)</label>
+        <input id="skintype" type="text" name="skintype">
+
+        <button class="btn" type="submit">Join Waitlist</button>
+    </form>
+
+    {% if message %}
+    <p style="color:#7A9249; font-weight:600; margin-top:1rem;">{{ message }}</p>
+    {% endif %}
+</section>
+{% endblock %}

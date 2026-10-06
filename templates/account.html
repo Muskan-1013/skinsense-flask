@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="form-section">
+    <p class="script">Your profile</p>
+    <h1>Welcome, {{ user }}.</h1>
+    <p>You are logged in to SkinSense.</p>
+
+    <a href="/logout" class="btn">Log Out</a>
+</section>
+{% endblock %}

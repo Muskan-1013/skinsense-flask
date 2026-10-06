@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+    <h1>Know your skin.<br>Care better.</h1>
+
+    <div class="hero-device">
+        <img src="/static/device.png" alt="DermaSense handheld skin analyser">
+    </div>
+
+    <div class="hero-copy">
+        <p>Measure moisture, pH and oiliness in under a minute, then get ingredient suggestions matched to your skin.</p>
+        <a href="/waitlist" class="btn">Join the Waitlist</a>
+    </div>
+
+    <div class="hero-tiles">
+        <div class="glass-tile">
+            <strong>3-in-1</strong>
+            <span>Moisture, pH, oil</span>
+        </div>
+        <div class="glass-tile">
+            <strong>Rs. 2,500</strong>
+            <span>Estimated cost</span>
+        </div>
+    </div>
+</section>
+
+<section class="block">
+    <div class="section-head">
+        <h2>What it measures</h2>
+        <p>Four things DermaSense tells you every time you use it.</p>
+    </div>
+    <div class="card-grid four-cards">
+        {% for f in features %}
+        <article class="card">
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.text }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="block">
+    <div class="section-head">
+        <h2>How it works</h2>
+        <p>Under a minute, start to finish.</p>
+    </div>
+    <div class="card-grid">
+        {% for s in steps %}
+        <article class="card">
+            <h3>Step {{ loop.index }}</h3>
+            <p>{{ s }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="quote-band">
+    <p>We don't guess your skin. We measure it.</p>
+    <a href="/product" class="btn btn-outline">See DermaSense</a>
+</section>
+
+{% endblock %}
