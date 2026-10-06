@@ -522,3 +522,11 @@ input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 .site-header:has(> .brand:only-child) { justify-content: center; }
 /* Pages without the brand card: spread the three link columns evenly */
 .footer-top:not(:has(.footer-brand-card)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.chart-box {
+    max-width: 820px;
+    margin: 0 auto;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 24px;
+}

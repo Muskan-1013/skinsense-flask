@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Your history</p>
+        <h1>My Skin.</h1>
+    </div>
+</section>
+
+{% if not has_device %}
+<section class="center-section">
+    <h2>Pair your DermaSense to start tracking.</h2>
+    <a class="btn" href="/pair">Pair Device</a>
+</section>
+{% elif not readings %}
+<section class="center-section">
+    <h2>No readings yet.</h2>
+    <p>Press the button on your device to take one.</p>
+</section>
+{% else %}
+<section class="block">
+    <div class="chart-box"><canvas id="chart" height="120"></canvas></div>
+</section>
+
+<section class="block">
+    <div class="section-head"><h2>Readings</h2></div>
+    <table>
+        <tr><th>Time</th><th>Moisture</th><th>pH</th><th>Oiliness</th><th>Skin type</th></tr>
+        {% for r in readings[:30] %}
+        <tr>
+            <td>{{ r.time }}</td><td>{{ r.moisture|round(1) }}%</td>
+            <td>{{ r.ph|round(2) }}</td><td>{{ r.oiliness|round(1) }}%</td><td>{{ r.skin_type }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    const d = {{ chart | tojson }};
+    Chart.defaults.color = "#A9BDA0";
+    Chart.defaults.borderColor = "rgba(230,238,219,0.16)";
+    new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: {
+            labels: d.labels,
+            datasets: [
+                { label: "Moisture %", data: d.moisture, borderColor: "#7E9A73", yAxisID: "pct", tension: 0.3 },
+                { label: "Oiliness %", data: d.oiliness, borderColor: "#E6EEDB", yAxisID: "pct", tension: 0.3 },
+                { label: "pH", data: d.ph, borderColor: "#F2B3A6", yAxisID: "ph", tension: 0.3 }
+            ]
+        },
+        options: {
+            interaction: { mode: "index", intersect: false },
+            scales: {
+                pct: { position: "left", min: 0, max: 100, title: { display: true, text: "%" } },
+                ph: { position: "right", min: 0, max: 14, title: { display: true, text: "pH" }, grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

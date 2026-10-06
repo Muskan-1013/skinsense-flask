@@ -1,5 +1,6 @@
 """All page routes, grouped in one blueprint."""
-
+from zoneinfo import ZoneInfo
+from flask import jsonify
 from flask import Blueprint, redirect, render_template, request, session
 
 import content
@@ -15,8 +16,10 @@ from models import Reading
 bp = Blueprint("main", __name__)
 
 # Pages a visitor can open without an account. Everything else needs login.
-PUBLIC_ENDPOINTS = {"main.welcome", "main.login", "main.signup", "static"}
-
+PUBLIC_ENDPOINTS = {
+    "main.welcome", "main.login", "main.signup", "static",
+    "main.api_register", "main.api_poll", "main.api_readings",
+}
 
 @bp.before_app_request
 def require_login():
@@ -178,3 +181,80 @@ def logout():
     session.pop("user", None)
     session["splash_seen"] = True  # skip the splash after logging out
     return redirect("/login")
+# ---------- device pairing and readings ----------
+
+IST = ZoneInfo("Asia/Kolkata")
+
+
+@bp.route("/pair", methods=["GET", "POST"])
+@login_required
+def pair():
+    message, status = "", "ok"
+    if request.method == "POST":
+        code = request.form.get("code", "").strip()
+        user = database.get_user_by_email(session["user"])
+        if not (code.isdigit() and len(code) == 6):
+            message, status = "Enter the 6-digit code shown on your device.", "err"
+        elif user and database.claim_pairing(code, user["id"]):
+            message = "Device paired. Your readings will appear under My Skin."
+        else:
+            message, status = "That code is invalid or has expired. Check the device screen.", "err"
+    return render_template("pair.html", message=message, status=status)
+
+
+@bp.route("/my-skin")
+@login_required
+def my_skin():
+    user = database.get_user_by_email(session["user"])
+    rows = database.get_readings(user["id"])
+    readings = [
+        {
+            "time": r["created_at"].astimezone(IST).strftime("%d %b %Y, %H:%M"),
+            "moisture": r["moisture"], "ph": r["ph"], "oiliness": r["oiliness"],
+            "skin_type": analyse(Reading(r["moisture"], r["ph"], r["oiliness"])).skin_type,
+        }
+        for r in rows
+    ]
+    chart = {  # oldest first for the graph
+        "labels": [r["time"] for r in reversed(readings)],
+        "moisture": [r["moisture"] for r in reversed(readings)],
+        "ph": [r["ph"] for r in reversed(readings)],
+        "oiliness": [r["oiliness"] for r in reversed(readings)],
+    }
+    return render_template(
+        "my_skin.html", readings=readings, chart=chart,
+        has_device=database.count_devices(user["id"]) > 0,
+    )
+
+
+@bp.route("/api/device/register", methods=["POST"])
+def api_register():
+    code = str((request.get_json(silent=True) or {}).get("code", ""))
+    if not (code.isdigit() and len(code) == 6):
+        return jsonify(error="bad code"), 400
+    if not database.create_pairing(code):
+        return jsonify(error="code in use"), 409
+    return jsonify(status="waiting"), 201
+
+
+@bp.route("/api/device/poll")
+def api_poll():
+    token = database.collect_pairing(request.args.get("code", ""))
+    if token:
+        return jsonify(token=token), 200
+    return jsonify(status="waiting"), 202
+
+
+@bp.route("/api/readings", methods=["POST"])
+def api_readings():
+    header = request.headers.get("Authorization", "")
+    token = header[7:] if header.startswith("Bearer ") else ""
+    device = database.get_device_by_token(token) if token else None
+    if device is None:
+        return jsonify(error="unauthorized"), 401
+    try:
+        reading = Reading.from_form(request.get_json(silent=True) or {})
+    except ValueError as problem:
+        return jsonify(error=str(problem)), 400
+    database.add_reading(device, reading.moisture, reading.ph, reading.oiliness)
+    return jsonify(skin_type=analyse(reading).skin_type), 201

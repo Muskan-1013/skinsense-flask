@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-hero">
+    <div class="wrap">
+        <p class="script">Connect your device</p>
+        <h1>Pair DermaSense.</h1>
+        <p>Turn on your device. It shows a 6-digit code on its screen. Type it below.</p>
+    </div>
+</section>
+
+<section class="form-section">
+    <form method="POST">
+        <label for="code">Device code</label>
+        <input id="code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required>
+        <button class="btn" type="submit">Pair Device</button>
+    </form>
+
+    {% if message %}
+    <p class="msg {{ 'msg-ok' if status == 'ok' else 'msg-err' }}">{{ message }}</p>
+    {% endif %}
+    <p class="form-alt"><a href="/my-skin">Go to My Skin</a></p>
+</section>
+{% endblock %}
