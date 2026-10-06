@@ -14,8 +14,30 @@ from models import Reading
 
 bp = Blueprint("main", __name__)
 
+# Pages a visitor can open without an account. Everything else needs login.
+PUBLIC_ENDPOINTS = {"main.welcome", "main.login", "main.signup", "static"}
 
-# ---------- public pages ----------
+
+@bp.before_app_request
+def require_login():
+    """New visitors see the splash first, then login. Signed-in users go straight in."""
+    if request.endpoint is None or request.endpoint in PUBLIC_ENDPOINTS:
+        return None
+    if "user" in session:
+        return None
+    return redirect("/login" if session.get("splash_seen") else "/welcome")
+
+
+@bp.route("/welcome")
+def welcome():
+    """Splash screen. Signed-in users skip it."""
+    if "user" in session:
+        return redirect("/")
+    session["splash_seen"] = True
+    return render_template("splash.html")
+
+
+# ---------- pages ----------
 
 @bp.route("/")
 def home():
@@ -107,6 +129,8 @@ def waitlist():
 
 @bp.route("/signup", methods=["GET", "POST"])
 def signup():
+    if "user" in session:
+        return redirect("/")
     message = ""
     if request.method == "POST":
         email = normalize_email(request.form.get("email"))
@@ -119,13 +143,16 @@ def signup():
             message = "This email is already registered."
         else:
             session.clear()
+            session.permanent = True
             session["user"] = email
-            return redirect("/account")
+            return redirect("/")
     return render_template("signup.html", message=message, min_length=Config.MIN_PASSWORD_LENGTH)
 
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
+    if "user" in session:
+        return redirect("/")
     message = ""
     if request.method == "POST":
         email = normalize_email(request.form.get("email"))
@@ -133,8 +160,9 @@ def login():
         user = database.get_user_by_email(email)
         if user is not None and verify_password(user["password_hash"], password):
             session.clear()
+            session.permanent = True
             session["user"] = email
-            return redirect("/account")
+            return redirect("/")
         message = "Invalid email or password."
     return render_template("login.html", message=message)
 
@@ -148,4 +176,5 @@ def account():
 @bp.route("/logout")
 def logout():
     session.pop("user", None)
+    session["splash_seen"] = True  # skip the splash after logging out
     return redirect("/login")

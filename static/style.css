@@ -517,3 +517,8 @@ form .btn { margin-top: 24px; width: 100%; }
 }
 
 input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+/* Logged-out pages: centre the single logo and footer card */
+.footer-top:has(> .footer-brand-card:only-child) { grid-template-columns: minmax(0, 360px); justify-content: center; }
+.site-header:has(> .brand:only-child) { justify-content: center; }
+/* Pages without the brand card: spread the three link columns evenly */
+.footer-top:not(:has(.footer-brand-card)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
