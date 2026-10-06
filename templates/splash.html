@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="4;url=/login">
+    <title>SkinSense</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+            color: #E6EEDB;
+            background: radial-gradient(ellipse at 50% 35%, #33472F 0%, #1F2D1D 50%, #131C12 100%);
+        }
+
+        .splash {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .glow {
+            position: absolute;
+            width: min(70vw, 520px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(126, 154, 115, 0.35) 0%, rgba(126, 154, 115, 0) 70%);
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        h1 {
+            position: relative;
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            font-size: clamp(48px, 12vw, 104px);
+            letter-spacing: 0.02em;
+            animation: rise 1s ease-out both;
+        }
+
+        .rule {
+            position: relative;
+            height: 1px;
+            width: 0;
+            margin: 22px 0 18px;
+            background: #A9BDA0;
+            animation: grow 0.9s 0.6s ease-out forwards;
+        }
+
+        .slogan {
+            position: relative;
+            font-size: clamp(13px, 2.6vw, 17px);
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: #A9BDA0;
+            animation: rise 1s 0.9s ease-out both;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 28px;
+            font-size: 12px;
+            color: #A9BDA0;
+            opacity: 0;
+            animation: fade 0.8s 2s ease-out forwards;
+        }
+
+        @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes grow { to { width: min(220px, 50vw); } }
+        @keyframes fade { to { opacity: 0.8; } }
+        @keyframes breathe { 0%, 100% { transform: scale(0.95); opacity: 0.7; } 50% { transform: scale(1.05); opacity: 1; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; }
+            .rule { width: 160px; }
+            .hint { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <a class="splash" href="/login" aria-label="Continue to SkinSense">
+        <div class="glow" aria-hidden="true"></div>
+        <h1>SkinSense</h1>
+        <div class="rule"></div>
+        <p class="slogan">Know your skin. Care better.</p>
+        <p class="hint">Tap to continue</p>
+    </a>
+</body>
+</html>
