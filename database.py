@@ -4,6 +4,7 @@ import hashlib
 import secrets
 
 import psycopg2
+import psycopg2.errors
 import psycopg2.extras
 from flask import current_app, g
 
@@ -109,6 +110,9 @@ def run_migrations(db):
 
 
 def init_db(app):
+    """Create/upgrade the schema. Call once at startup."""
+    if not app.config["DATABASE_URL"]:
+        raise RuntimeError("DATABASE_URL is not set")
     app.teardown_appcontext(close_db)
     with app.app_context():
         run_migrations(get_db())
