@@ -2,62 +2,104 @@
 {% block content %}
 <section class="page-hero">
     <div class="wrap">
-        <p class="script">Your history</p>
+        <p class="script">Your DermaSense history</p>
         <h1>My Skin.</h1>
     </div>
 </section>
 
-{% if not has_device %}
+{% if not readings %}
 <section class="center-section">
-    <h2>Pair your DermaSense to start tracking.</h2>
-    <a class="btn" href="/pair">Pair Device</a>
-</section>
-{% elif not readings %}
-<section class="center-section">
-    <h2>No readings yet.</h2>
-    <p>Press the button on your device to take one.</p>
+    {% if has_device %}
+    <h2>Waiting for your first reading.</h2>
+    <p class="empty-note">Take a measurement with your DermaSense. It will appear here within a few seconds.</p>
+    {% else %}
+    <h2>No device paired yet.</h2>
+    <p class="empty-note">Pair your DermaSense to start saving readings.</p>
+    <a class="btn" href="/devices">Pair a device</a>
+    {% endif %}
 </section>
 {% else %}
+
 <section class="block">
-    <div class="chart-box"><canvas id="chart" height="120"></canvas></div>
+    <div class="section-head">
+        <h2>{{ profile.skin_type }} skin</h2>
+        <p>Based on your latest reading.</p>
+    </div>
+    <div class="card-grid">
+        <article class="card"><h3>Moisture</h3><p>{{ readings[0].moisture | round(1) }}% &middot; {{ profile.moisture_level }}</p></article>
+        <article class="card"><h3>pH</h3><p>{{ readings[0].ph | round(2) }} &middot; {{ profile.ph_status }}</p></article>
+        <article class="card"><h3>Oiliness</h3><p>{{ readings[0].oiliness | round(1) }}% &middot; {{ profile.oil_level }}</p></article>
+        <article class="card"><h3>Ingredients to look for</h3><p>{{ profile.ingredients | join(", ") }}</p></article>
+    </div>
 </section>
 
 <section class="block">
-    <div class="section-head"><h2>Readings</h2></div>
+    <div class="section-head">
+        <h2>Over time</h2>
+        <p>Moisture and oiliness use the left scale. pH uses the right.</p>
+    </div>
+    <div class="chart-box"><canvas id="skinChart" aria-label="Moisture, pH and oiliness over time" role="img"></canvas></div>
+</section>
+
+<section class="block">
+    <div class="section-head">
+        <h2>All readings</h2>
+        <p>Newest first. Times are shown in your local time.</p>
+    </div>
     <table>
-        <tr><th>Time</th><th>Moisture</th><th>pH</th><th>Oiliness</th><th>Skin type</th></tr>
-        {% for r in readings[:30] %}
+        <tr><th>When</th><th>Moisture</th><th>pH</th><th>Oiliness</th></tr>
+        {% for r in readings %}
         <tr>
-            <td>{{ r.time }}</td><td>{{ r.moisture|round(1) }}%</td>
-            <td>{{ r.ph|round(2) }}</td><td>{{ r.oiliness|round(1) }}%</td><td>{{ r.skin_type }}</td>
+            <td><time class="local-time" datetime="{{ r.time }}">{{ r.time }}</time></td>
+            <td>{{ r.moisture | round(1) }}%</td>
+            <td>{{ r.ph | round(2) }}</td>
+            <td>{{ r.oiliness | round(1) }}%</td>
         </tr>
         {% endfor %}
     </table>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-    const d = {{ chart | tojson }};
-    Chart.defaults.color = "#A9BDA0";
-    Chart.defaults.borderColor = "rgba(230,238,219,0.16)";
-    new Chart(document.getElementById("chart"), {
+(function () {
+    var data = {{ chart | tojson }};
+    var fmt = function (iso) {
+        return new Date(iso).toLocaleString([], {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+    };
+    document.querySelectorAll("time.local-time").forEach(function (el) {
+        el.textContent = fmt(el.getAttribute("datetime"));
+    });
+    if (!window.Chart) { return; }
+    var line = function (label, key, color, axis) {
+        return {
+            label: label, data: data.map(function (r) { return r[key]; }), yAxisID: axis,
+            borderColor: color, backgroundColor: color, tension: 0.3, pointRadius: 3, borderWidth: 2
+        };
+    };
+    var grid = {color: "rgba(230,238,219,0.12)"};
+    var tick = {color: "#A9BDA0"};
+    new Chart(document.getElementById("skinChart"), {
         type: "line",
         data: {
-            labels: d.labels,
+            labels: data.map(function (r) { return fmt(r.time); }),
             datasets: [
-                { label: "Moisture %", data: d.moisture, borderColor: "#7E9A73", yAxisID: "pct", tension: 0.3 },
-                { label: "Oiliness %", data: d.oiliness, borderColor: "#E6EEDB", yAxisID: "pct", tension: 0.3 },
-                { label: "pH", data: d.ph, borderColor: "#F2B3A6", yAxisID: "ph", tension: 0.3 }
+                line("Moisture %", "moisture", "#7FB8E0", "pct"),
+                line("Oiliness %", "oiliness", "#E6C16B", "pct"),
+                line("pH", "ph", "#BFE0A8", "ph")
             ]
         },
         options: {
-            interaction: { mode: "index", intersect: false },
+            responsive: true, maintainAspectRatio: false,
+            interaction: {mode: "index", intersect: false},
+            plugins: {legend: {labels: {color: "#E6EEDB"}}},
             scales: {
-                pct: { position: "left", min: 0, max: 100, title: { display: true, text: "%" } },
-                ph: { position: "right", min: 0, max: 14, title: { display: true, text: "pH" }, grid: { drawOnChartArea: false } }
+                x: {grid: grid, ticks: Object.assign({maxTicksLimit: 8}, tick)},
+                pct: {position: "left", min: 0, max: 100, grid: grid, ticks: tick},
+                ph: {position: "right", min: 0, max: 14, grid: {drawOnChartArea: false}, ticks: tick}
             }
         }
     });
+})();
 </script>
 {% endif %}
 {% endblock %}
