@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}My Skin | SkinSense{% endblock %}
 {% block content %}
 <section class="page-hero">
     <div class="wrap">
@@ -15,7 +16,7 @@
     {% else %}
     <h2>No device paired yet.</h2>
     <p class="empty-note">Pair your DermaSense to start saving readings.</p>
-    <a class="btn" href="/devices">Pair a device</a>
+    <a class="btn" href="/pair">Pair a device</a>
     {% endif %}
 </section>
 {% else %}
@@ -50,7 +51,7 @@
         <tr><th>When</th><th>Moisture</th><th>pH</th><th>Oiliness</th></tr>
         {% for r in readings %}
         <tr>
-            <td><time class="local-time" datetime="{{ r.time }}">{{ r.time }}</time></td>
+            <td><time class="local-time" datetime="{{ r.iso }}">{{ r.time }}</time></td>
             <td>{{ r.moisture | round(1) }}%</td>
             <td>{{ r.ph | round(2) }}</td>
             <td>{{ r.oiliness | round(1) }}%</td>

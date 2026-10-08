@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% block title %}Log In | SkinSense{% endblock %}
 {% block content %}
 <section class="form-section">
     <p class="script">Welcome back</p>
     <h1>Log in to SkinSense.</h1>
 
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="email">Email</label>
         <input id="email" type="email" name="email" required>
 

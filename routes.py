@@ -12,6 +12,7 @@ from auth import (
     password_error, verify_password,
 )
 from config import Config
+from extensions import csrf, limiter
 from models import Reading
 
 bp = Blueprint("main", __name__)
@@ -144,6 +145,7 @@ def waitlist():
 # ---------- accounts ----------
 
 @bp.route("/signup", methods=["GET", "POST"])
+@limiter.limit("10 per hour", methods=["POST"])
 def signup():
     if "user" in session:
         return redirect("/")
@@ -166,6 +168,7 @@ def signup():
 
 
 @bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per 15 minutes", methods=["POST"])
 def login():
     if "user" in session:
         return redirect("/")
@@ -189,8 +192,9 @@ def account():
     return render_template("account.html", user=session["user"])
 
 
-@bp.route("/logout")
+@bp.route("/logout", methods=["POST"])
 def logout():
+    """POST only, so another site cannot log people out with a plain link or image."""
     session.pop("user", None)
     session["splash_seen"] = True  # skip the splash after logging out
     return redirect("/login")
@@ -200,6 +204,7 @@ def logout():
 
 @bp.route("/pair", methods=["GET", "POST"])
 @login_required
+@limiter.limit("10 per hour", methods=["POST"])
 def pair():
     message, status = "", "ok"
     if request.method == "POST":
@@ -222,28 +227,34 @@ def my_skin():
     user = current_user()
     if user is None:
         return redirect("/login")
-    rows = database.get_readings(user["id"])
+    rows = database.get_readings(user["id"])  # newest first
     readings = [
         {
             "time": r["created_at"].astimezone(IST).strftime("%d %b %Y, %H:%M"),
+            "iso": r["created_at"].isoformat(),
             "moisture": r["moisture"], "ph": r["ph"], "oiliness": r["oiliness"],
-            "skin_type": analyse(Reading(r["moisture"], r["ph"], r["oiliness"])).skin_type,
         }
         for r in rows
     ]
-    chart = {  # oldest first for the graph
-        "labels": [r["time"] for r in reversed(readings)],
-        "moisture": [r["moisture"] for r in reversed(readings)],
-        "ph": [r["ph"] for r in reversed(readings)],
-        "oiliness": [r["oiliness"] for r in reversed(readings)],
-    }
+    profile = None
+    if rows:
+        latest = rows[0]
+        profile = analyse(Reading(latest["moisture"], latest["ph"], latest["oiliness"]))
+    chart = [  # oldest first, a list of objects, which is what the template's JS expects
+        {"time": r["iso"], "moisture": r["moisture"], "ph": r["ph"], "oiliness": r["oiliness"]}
+        for r in reversed(readings)
+    ]
     return render_template(
-        "my_skin.html", readings=readings, chart=chart,
+        "my_skin.html", readings=readings, chart=chart, profile=profile,
         has_device=database.count_devices(user["id"]) > 0,
     )
 
 
+# ---------- device API (token based, so exempt from CSRF) ----------
+
 @bp.route("/api/device/register", methods=["POST"])
+@csrf.exempt
+@limiter.limit("30 per hour")
 def api_register():
     code = str((request.get_json(silent=True) or {}).get("code", ""))
     if not (code.isdigit() and len(code) == 6):
@@ -254,6 +265,7 @@ def api_register():
 
 
 @bp.route("/api/device/poll")
+@limiter.limit("60 per minute")
 def api_poll():
     token = database.collect_pairing(request.args.get("code", ""))
     if token:
@@ -262,6 +274,8 @@ def api_poll():
 
 
 @bp.route("/api/readings", methods=["POST"])
+@csrf.exempt
+@limiter.limit("120 per hour")
 def api_readings():
     header = request.headers.get("Authorization", "")
     token = header[7:] if header.startswith("Bearer ") else ""

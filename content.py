@@ -1,7 +1,7 @@
 """Static page content (lists and dictionaries used by templates)."""
 
 features = [
-    {"icon": "M", "title": "Moisture", "text": "Capacitive sensing detects hydration."},
+    {"icon": "M", "title": "Moisture", "text": "Resistive sensing detects hydration."},
     {"icon": "pH", "title": "pH Balance", "text": "Liquid pH probe reads acid-alkaline state."},
     {"icon": "O", "title": "Oiliness", "text": "Blotting paper and light sensor quantify sebum."},
     {"icon": "I", "title": "Ingredient Guidance", "text": "Decision-tree algorithm suggests ingredients."},

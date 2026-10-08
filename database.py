@@ -56,6 +56,13 @@ MIGRATIONS = [
     );
     CREATE INDEX readings_user_time ON readings (user_id, created_at);
     """,
+    # 3: store readings as double precision (no float32 noise like 45.29999923706)
+    """
+    ALTER TABLE readings
+        ALTER COLUMN moisture TYPE DOUBLE PRECISION,
+        ALTER COLUMN ph TYPE DOUBLE PRECISION,
+        ALTER COLUMN oiliness TYPE DOUBLE PRECISION;
+    """,
 ]
 
 
@@ -151,8 +158,14 @@ def add_waitlist(name, email, skintype):
 
 # ---------- device pairing ----------
 
+def purge_expired_pairings():
+    """Remove old codes so /api/device/register can't fill the table."""
+    _run("DELETE FROM pairing WHERE expires_at < now() - interval '1 hour'")
+
+
 def create_pairing(code):
     """Device announces a code. False if that code is still live for someone else."""
+    purge_expired_pairings()
     count = _run(
         """INSERT INTO pairing (code, expires_at) VALUES (%s, now() + interval '10 minutes')
            ON CONFLICT (code) DO UPDATE

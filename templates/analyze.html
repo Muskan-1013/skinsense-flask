@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Skin Analyser | SkinSense{% endblock %}
 {% block content %}
 <section class="page-hero">
     <div class="wrap">
@@ -9,6 +10,7 @@
 
 <section class="form-section">
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="moisture">Moisture (%)</label>
         <input id="moisture" type="number" name="moisture" min="0" max="100" step="any" value="{{ values.get('moisture', '') }}" required>
 
