@@ -9,17 +9,73 @@
 </section>
 
 {% if not readings %}
-<section class="center-section">
-    {% if has_device %}
-    <h2>Waiting for your first reading.</h2>
-    <p class="empty-note">Take a measurement with your DermaSense. It will appear here within a few seconds.</p>
-    {% else %}
-    <h2>No device paired yet.</h2>
-    <p class="empty-note">Pair your DermaSense to start saving readings.</p>
-    <a class="btn" href="/pair">Pair a device</a>
-    {% endif %}
+
+{% if not has_device %}
+<section class="wrap narrow">
+    <div class="empty-card">
+        <h2>No device paired yet.</h2>
+        <p>Turn on your DermaSense, note the 6-digit code on its screen, and enter it to start saving readings.</p>
+        <a class="btn" href="/pair">Pair a device</a>
+    </div>
 </section>
 {% else %}
+<section class="wrap">
+    <div class="stat-row">
+        <div class="stat-tile stat-score"><span>Skin score</span><strong>&ndash;</strong><small>No readings yet</small></div>
+        <div class="stat-tile"><span>Moisture</span><strong>&ndash;</strong><small>%</small></div>
+        <div class="stat-tile"><span>pH</span><strong>&ndash;</strong><small>&nbsp;</small></div>
+        <div class="stat-tile"><span>Oiliness</span><strong>&ndash;</strong><small>%</small></div>
+    </div>
+</section>
+
+<section class="wrap">
+    <div class="empty-card">
+        <h2>Device paired. Take your first reading.</h2>
+        <p>Press the sensors against clean, dry skin and wait for the result on the LCD. It appears here within a few seconds.</p>
+        <p class="live-note"><span class="pulse"></span> Waiting for your first reading</p>
+    </div>
+</section>
+
+<section class="wrap">
+    <div class="section-head"><h2>Monthly trend</h2></div>
+    <div class="chart-box chart-ghost">
+        <p class="empty-note">Your monthly skin score will be drawn here once you have readings.</p>
+    </div>
+</section>
+
+<script>
+    setInterval(function () { if (document.visibilityState === "visible") location.reload(); }, 30000);
+</script>
+{% endif %}
+
+{% else %}
+
+<section class="wrap">
+    <div class="stat-row">
+        <div class="stat-tile stat-score">
+            <span>Skin score</span>
+            <strong>{{ score }}<em>/100</em></strong>
+            <small>
+                {% if change is none %}First month of data
+                {% elif change > 0 %}<b class="up">+{{ change }}</b> vs last month
+                {% elif change < 0 %}<b class="down">{{ change }}</b> vs last month
+                {% else %}Same as last month{% endif %}
+            </small>
+        </div>
+        <div class="stat-tile"><span>Moisture</span><strong>{{ readings[0].moisture | round(1) }}<em>%</em></strong><small>{{ profile.moisture_level }}</small></div>
+        <div class="stat-tile"><span>pH</span><strong>{{ readings[0].ph | round(2) }}</strong><small>{{ profile.ph_status }}</small></div>
+        <div class="stat-tile"><span>Oiliness</span><strong>{{ readings[0].oiliness | round(1) }}<em>%</em></strong><small>{{ profile.oil_level }}</small></div>
+    </div>
+    <p class="stat-foot">Latest reading: <time class="local-time" datetime="{{ readings[0].iso }}">{{ readings[0].time }}</time></p>
+</section>
+
+<section class="block">
+    <div class="section-head">
+        <h2>Monthly trend</h2>
+        <p>Average skin score per month. 100 means every reading was in its healthy range.</p>
+    </div>
+    <div class="chart-box"><canvas id="monthChart" aria-label="Monthly skin score" role="img"></canvas></div>
+</section>
 
 <section class="block">
     <div class="section-head">
@@ -27,10 +83,8 @@
         <p>Based on your latest reading.</p>
     </div>
     <div class="card-grid">
-        <article class="card"><h3>Moisture</h3><p>{{ readings[0].moisture | round(1) }}% &middot; {{ profile.moisture_level }}</p></article>
-        <article class="card"><h3>pH</h3><p>{{ readings[0].ph | round(2) }} &middot; {{ profile.ph_status }}</p></article>
-        <article class="card"><h3>Oiliness</h3><p>{{ readings[0].oiliness | round(1) }}% &middot; {{ profile.oil_level }}</p></article>
         <article class="card"><h3>Ingredients to look for</h3><p>{{ profile.ingredients | join(", ") }}</p></article>
+        <article class="card"><h3>Notes</h3>{% for note in profile.notes %}<p>{{ note }}</p>{% endfor %}</article>
     </div>
 </section>
 
@@ -64,6 +118,7 @@
 <script>
 (function () {
     var data = {{ chart | tojson }};
+    var months = {{ monthly | tojson }};
     var fmt = function (iso) {
         return new Date(iso).toLocaleString([], {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
     };
@@ -71,14 +126,38 @@
         el.textContent = fmt(el.getAttribute("datetime"));
     });
     if (!window.Chart) { return; }
+    var grid = {color: "rgba(230,238,219,0.12)"};
+    var tick = {color: "#A9BDA0"};
+
+    new Chart(document.getElementById("monthChart"), {
+        type: "line",
+        data: {
+            labels: months.map(function (m) { return m.label; }),
+            datasets: [{
+                label: "Skin score", data: months.map(function (m) { return m.score; }),
+                borderColor: "#B7CCA9", backgroundColor: "rgba(126,154,115,0.22)", fill: true,
+                tension: 0.3, pointRadius: 6, pointHoverRadius: 8, borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: {display: false},
+                tooltip: {callbacks: {afterLabel: function (c) { return months[c.dataIndex].count + " readings"; }}}
+            },
+            scales: {
+                x: {grid: grid, ticks: tick},
+                y: {min: 0, max: 100, grid: grid, ticks: tick}
+            }
+        }
+    });
+
     var line = function (label, key, color, axis) {
         return {
             label: label, data: data.map(function (r) { return r[key]; }), yAxisID: axis,
             borderColor: color, backgroundColor: color, tension: 0.3, pointRadius: 3, borderWidth: 2
         };
     };
-    var grid = {color: "rgba(230,238,219,0.12)"};
-    var tick = {color: "#A9BDA0"};
     new Chart(document.getElementById("skinChart"), {
         type: "line",
         data: {

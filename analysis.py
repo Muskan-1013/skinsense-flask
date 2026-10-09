@@ -13,7 +13,13 @@ The old site text listed Combination and Normal with overlapping conditions.
 The moisture split above is the rule used to separate them.
 """
 
+from datetime import datetime
+from statistics import mean
+from zoneinfo import ZoneInfo
+
 from models import Reading, SkinProfile
+
+IST = ZoneInfo("Asia/Kolkata")
 
 # ---- Thresholds (single source of truth) ----
 OIL_LOW = 20
@@ -105,3 +111,41 @@ def analyse(reading):
         ingredients=suggest_ingredients(skin_type, status),
         notes=build_notes(reading, status, skin_type),
     )
+
+
+# ---------- skin score and monthly trend ----------
+
+def _band_score(value, low, high, tolerance):
+    """100 inside the healthy band, falling to 0 as it moves `tolerance` away."""
+    if low <= value <= high:
+        return 100.0
+    gap = low - value if value < low else value - high
+    return max(0.0, 100.0 - 100.0 * gap / tolerance)
+
+
+def skin_score(moisture, ph, oiliness):
+    """0-100. 100 means moisture, pH and oiliness are all in their healthy ranges."""
+    return round(mean([
+        _band_score(moisture, MOISTURE_LOW, MOISTURE_HIGH, 40),
+        _band_score(ph, PH_ACIDIC, PH_ALKALINE, 2.0),
+        _band_score(oiliness, OIL_LOW, OIL_HIGH, 40),
+    ]))
+
+
+def monthly_summary(rows):
+    """Oldest month first: one averaged score per calendar month (IST).
+
+    `rows` are database reading rows (any order) with created_at, moisture, ph, oiliness.
+    """
+    buckets = {}
+    for r in rows:
+        t = r["created_at"].astimezone(IST)
+        buckets.setdefault((t.year, t.month), []).append(r)
+    return [
+        {
+            "label": datetime(year, month, 1).strftime("%b %Y"),
+            "score": round(mean(skin_score(r["moisture"], r["ph"], r["oiliness"]) for r in group)),
+            "count": len(group),
+        }
+        for (year, month), group in sorted(buckets.items())
+    ]

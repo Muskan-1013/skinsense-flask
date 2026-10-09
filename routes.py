@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, redirect, render_template, request, sessio
 
 import content
 import database
-from analysis import analyse
+from analysis import analyse, monthly_summary, skin_score
 from auth import (
     hash_password, is_valid_email, login_required, normalize_email,
     password_error, verify_password,
@@ -215,7 +215,7 @@ def pair():
         if not (code.isdigit() and len(code) == 6):
             message, status = "Enter the 6-digit code shown on your device.", "err"
         elif database.claim_pairing(code, user["id"]):
-            message = "Device paired. Your readings will appear under My Skin."
+            return redirect("/my-skin")  # straight to the dashboard's waiting screen
         else:
             message, status = "That code is invalid or has expired. Check the device screen.", "err"
     return render_template("pair.html", message=message, status=status)
@@ -227,25 +227,30 @@ def my_skin():
     user = current_user()
     if user is None:
         return redirect("/login")
-    rows = database.get_readings(user["id"])  # newest first
-    readings = [
+    rows = database.get_readings(user["id"], limit=2000)  # newest first
+    readings = [  # latest 100 for the table and the "Over time" chart
         {
             "time": r["created_at"].astimezone(IST).strftime("%d %b %Y, %H:%M"),
             "iso": r["created_at"].isoformat(),
             "moisture": r["moisture"], "ph": r["ph"], "oiliness": r["oiliness"],
         }
-        for r in rows
+        for r in rows[:100]
     ]
-    profile = None
+    profile = score = change = None
+    monthly = monthly_summary(rows)  # uses every reading, oldest month first
     if rows:
         latest = rows[0]
         profile = analyse(Reading(latest["moisture"], latest["ph"], latest["oiliness"]))
+        score = skin_score(latest["moisture"], latest["ph"], latest["oiliness"])
+        if len(monthly) >= 2:
+            change = monthly[-1]["score"] - monthly[-2]["score"]
     chart = [  # oldest first, a list of objects, which is what the template's JS expects
         {"time": r["iso"], "moisture": r["moisture"], "ph": r["ph"], "oiliness": r["oiliness"]}
         for r in reversed(readings)
     ]
     return render_template(
         "my_skin.html", readings=readings, chart=chart, profile=profile,
+        score=score, change=change, monthly=monthly,
         has_device=database.count_devices(user["id"]) > 0,
     )
 
