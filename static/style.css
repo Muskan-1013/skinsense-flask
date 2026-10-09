@@ -564,7 +564,7 @@ input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 
 .stat-tile strong em { font-size: 16px; font-style: normal; color: var(--mist-muted); margin-left: 2px; }
 .stat-tile small { font-size: 12px; color: var(--mist-muted); }
-.stat-score { background: var(--glass-strong); border-color: var(--moss-bright); }
+.stat-score { }
 
 .up { color: #BFE0A8; }
 .down { color: #F2B3A6; }
@@ -613,3 +613,99 @@ input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 /* My Skin: restore section spacing (.wrap on <section> overrides main section margin) */
 main section.wrap { margin-bottom: 48px; }
 main section.wrap:last-child { margin-bottom: 0; }
+
+/* ==========================================================
+   Glassmorphism layer (append-only, safe to remove as one block)
+   ========================================================== */
+
+/* 1. Soft colour glows behind the glass, so the blur has something to refract */
+.panel {
+    background:
+        radial-gradient(circle at 10% 12%, rgba(126, 154, 115, 0.45) 0, transparent 38%),
+        radial-gradient(circle at 92% 40%, rgba(95, 140, 120, 0.38) 0, transparent 36%),
+        radial-gradient(circle at 18% 78%, rgba(183, 204, 169, 0.22) 0, transparent 34%),
+        radial-gradient(circle at 85% 96%, rgba(126, 154, 115, 0.35) 0, transparent 38%),
+        radial-gradient(ellipse at 50% 18%, #33472F 0%, var(--forest) 48%, var(--forest-deep) 100%);
+}
+
+/* 2. The glass surfaces: blur, soft shadow, bright top edge */
+.main-nav a,
+.cart-btn,
+.avatar-btn,
+.card,
+.reading-card,
+.glass-tile,
+.stat-tile,
+.empty-card,
+.chart-box,
+.cream-section,
+.quote-band,
+.center-section,
+form,
+table,
+.footer-brand-card {
+    background: linear-gradient(145deg, rgba(230, 238, 219, 0.16) 0%, rgba(126, 154, 115, 0.10) 100%);
+    border: 1px solid rgba(230, 238, 219, 0.20);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(230, 238, 219, 0.22);
+}
+
+/* Stronger glass for the key items */
+.stat-score,
+.main-nav a.active {
+    background: linear-gradient(145deg, rgba(230, 238, 219, 0.26) 0%, rgba(126, 154, 115, 0.20) 100%);
+}
+
+.main-nav a:hover,
+.cart-btn:hover,
+.avatar-btn:hover {
+    background: linear-gradient(145deg, rgba(230, 238, 219, 0.28) 0%, rgba(126, 154, 115, 0.22) 100%);
+}
+
+/* The footer is a darker pane */
+.site-footer {
+    background: rgba(19, 28, 18, 0.55);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(230, 238, 219, 0.12);
+}
+
+/* Inputs: frosted, inset */
+input, textarea {
+    background: rgba(19, 28, 18, 0.45);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Table header and rows read as glass layers */
+th { background: rgba(126, 154, 115, 0.22); }
+
+/* 3. Phones: lighter blur so scrolling stays smooth */
+@media (max-width: 760px) {
+    .card, .stat-tile, .empty-card, .chart-box, form, table, .reading-card, .glass-tile {
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
+}
+
+/* 4. Browsers without blur support, or users who asked for less transparency */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .card, .stat-tile, .empty-card, .chart-box, form, table, .reading-card,
+    .glass-tile, .cream-section, .quote-band, .center-section, .footer-brand-card {
+        background: rgba(42, 59, 39, 0.92);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .card, .stat-tile, .empty-card, .chart-box, form, table, .reading-card,
+    .glass-tile, .cream-section, .quote-band, .center-section, .footer-brand-card,
+    .main-nav a, .cart-btn, .avatar-btn {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: rgba(42, 59, 39, 0.95);
+    }
+}
