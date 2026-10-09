@@ -15,12 +15,9 @@ class Config:
     PERMANENT_SESSION_LIFETIME = 60 * 60 * 24 * 30
     MAX_MESSAGE_LENGTH = 2000
 
-    class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY")        # no "dev-only-key" fallback
-    SESSION_COOKIE_SECURE = True                     # set False only for local http testing
+    SESSION_COOKIE_SECURE = True      # set False only for local http testing
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    # ...keep your existing DATABASE_URL, MIN_PASSWORD_LENGTH, etc.
 
 
 class TestConfig(Config):
