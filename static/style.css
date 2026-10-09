@@ -610,3 +610,6 @@ input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 @media (max-width: 960px) { .stat-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { .stat-row { grid-template-columns: 1fr; } .chart-box { padding: 12px; } }
+/* My Skin: restore section spacing (.wrap on <section> overrides main section margin) */
+main section.wrap { margin-bottom: 48px; }
+main section.wrap:last-child { margin-bottom: 0; }
