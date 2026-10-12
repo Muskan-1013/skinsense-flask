@@ -5,11 +5,19 @@
     <div class="wrap">
         <p class="script">Connect your device</p>
         <h1>Pair DermaSense.</h1>
+        {% if show_form %}
         <p>Turn on your device. It shows a 6-digit code on its screen. Type it below.</p>
+        {% endif %}
     </div>
 </section>
 
 <section class="form-section">
+    {% if paired and not show_form %}
+    <p class="msg msg-ok">&#10003; Your DermaSense device is paired.</p>
+    <p>Your readings will appear on your My Skin page.</p>
+    <a class="btn" href="/my-skin">Go to My Skin</a>
+    <p class="form-alt"><a href="/pair?another=1">Pair another device</a></p>
+    {% else %}
     <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="code">Device code</label>
@@ -21,5 +29,6 @@
     <p class="msg {{ 'msg-ok' if status == 'ok' else 'msg-err' }}">{{ message }}</p>
     {% endif %}
     <p class="form-alt"><a href="/my-skin">Go to My Skin</a></p>
+    {% endif %}
 </section>
 {% endblock %}

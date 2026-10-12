@@ -206,20 +206,24 @@ def logout():
 @login_required
 @limiter.limit("10 per hour", methods=["POST"])
 def pair():
+    user = current_user()
+    if user is None:
+        return redirect("/login")
     message, status = "", "ok"
     if request.method == "POST":
         code = request.form.get("code", "").strip()
-        user = current_user()
-        if user is None:
-            return redirect("/login")
         if not (code.isdigit() and len(code) == 6):
             message, status = "Enter the 6-digit code shown on your device.", "err"
         elif database.claim_pairing(code, user["id"]):
             return redirect("/my-skin")  # straight to the dashboard's waiting screen
         else:
             message, status = "That code is invalid or has expired. Check the device screen.", "err"
-    return render_template("pair.html", message=message, status=status)
-
+    paired = database.count_devices(user["id"]) > 0
+    # Paired users see the status card; "?another=1" shows the form again
+    show_form = not paired or request.args.get("another") == "1"
+    return render_template(
+        "pair.html", message=message, status=status, paired=paired, show_form=show_form
+    )
 
 @bp.route("/my-skin")
 @login_required
